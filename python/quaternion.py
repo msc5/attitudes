@@ -2,24 +2,39 @@
 import numpy as np
 
 
+class vector:
+
+    def cross(v):
+        v1, v2, v3 = v.squeeze()
+        return np.array([
+            [0, -v3, v2],
+            [v3, 0, -v1],
+            [-v2, v1, 0]
+        ])
+
+
 class quaternion:
 
     def from_theta(e, theta):
-        n = len(theta)
+        n = 1 if not hasattr(theta, '__len__') else len(theta)
         q = np.append(e.reshape((3, 1)) * np.sin(theta / 2), np.cos(theta / 2))
         return q.reshape((4, n))
 
     def psi(q):
         qv = q[0:3]
         q4 = q[3]
-        qcross = np.cross(qv.squeeze(), np.eye(3) - 1)
-        return np.append(q[3] * np.eye(3) - qcross, - qv.T, axis=0)
+        qcross = vector.cross(qv)
+        a = q[3] * np.eye(3) - qcross
+        b = - (qv.T).reshape((1, 3))
+        return np.concatenate((a, b), axis=0)
 
     def xi(q):
         qv = q[0:3]
         q4 = q[3]
-        qcross = np.cross(qv.squeeze(), np.eye(3) - 1)
-        return np.append(q[3] * np.eye(3) + qcross, - qv.T, axis=0)
+        qcross = vector.cross(qv)
+        a = q[3] * np.eye(3) + qcross
+        b = - (qv.T).reshape((1, 3))
+        return np.concatenate((a, b), axis=0)
 
     def cross(q):
         return np.append(quaternion.psi(q), q, axis=1)
@@ -28,11 +43,7 @@ class quaternion:
         return np.append(quaternion.xi(q), q, axis=1)
 
     def A(q):
-        qv = q[0:3]
-        q4 = q[3]
-        qcross = np.cross(qv.squeeze(), np.eye(3) - 1)
-        return ((q4**2 - np.linalg.norm(qv)**2) * np.eye(3) -
-                2 * q4 * qcross + 2 * qv * qv.T)
+        return quaternion.xi(q).T @ quaternion.psi(q)
 
 
 if __name__ == "__main__":
@@ -41,7 +52,7 @@ if __name__ == "__main__":
 
     q = quaternion
 
-    rot = q.from_theta(np.array([0, 0, 1]), np.pi / 4)
+    rot = q.from_theta(np.array([0, 0, 1]), np.pi / 2)
     print(rot, rot.shape)
 
     rot_xi = q.xi(rot)

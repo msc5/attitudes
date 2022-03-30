@@ -23,15 +23,15 @@ if __name__ == "__main__":
 
     h = c * np.array([np.cos(t), np.sin(t), np.zeros(n)])
     p = np.array([a * np.cos(s), np.zeros(n), b * np.sin(s)])
-    # q_IH = q.from_theta(np.array([1, 0, 0]), t)
+    q_IH = q.from_theta(np.array([0, 0, 1]), np.pi / 2 - t)
     A_IH = np.array([
         [np.sin(t), np.cos(t), np.zeros(n)],
         [-np.cos(t), np.sin(t), np.zeros(n)],
         [np.zeros(n), np.zeros(n), np.ones(n)]
     ])
 
-    # print(h.shape, p.shape, (h + p).shape)
-    # print(q_IH.shape)
+    print(h.shape, p.shape, (h + p).shape)
+    print(q_IH.shape)
 
     r = np.zeros((3, n))
     for i in range(n):
@@ -44,5 +44,4 @@ if __name__ == "__main__":
     ax.set_xlim3d(plot_range)
     ax.set_ylim3d(plot_range)
     ax.set_zlim3d(plot_range)
-
     plt.show()
