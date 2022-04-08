@@ -8,6 +8,7 @@ function quaternion = quaternion()
     quaternion.I = @I;
     quaternion.inv = @inv;
     quaternion.conj = @conj;
+    quaternion.A = @A;
 end
 
 function q = q(e, t)
@@ -32,6 +33,10 @@ end
 
 function dot = dot(q)
     dot = [xi(q), q];
+end
+
+function A = A(q)
+    A = xi(q)' * psi(q);
 end
 
 function dq = dq(q, q_c)

@@ -17,9 +17,10 @@ wheel_momenta = zeros(3, n);
 % Initial Conditions
 J = [6400, -76.4, -25.6; -76.4, 4730, -40; -25.6, -40, 8160];
 h_0 = [0, 0, 0]';
-w_0 = [0.01, 0.01, 0.01]';
-% w_0 = [0, 0, 1]';
-q_0 = (sqrt(2) / 2) * [1, 0, 0, 1]';
+w_0 = [0.1, 0.5, 0.1]';
+% w_0 = [0, 0, 0]';
+% q_0 = (sqrt(2) / 2) * [1, 0, 0, 1]';
+q_0 = [0, 0, 0, 1]';
 q_c = [0, 0, 0, 1]';
 
 % Controller Parameters
@@ -56,12 +57,6 @@ figure();
 plot(times, wheel_momenta);
 grid on;
 yline(0,'k--');
-%% Plot Wheel Momenta Distributions
-
-W_pyramid = (1 / sqrt(2)) * [1, -1, 0, 0; 1, 1, 1, 1; 0, 0, 1, -1];
-W_NASA = [1, 0, 0, 1 / sqrt(3); 0, 1, 0, 1 / sqrt(3); 0, 0, 1, 1 / sqrt(3)];
-
-H_wW_pyramid = pinv(W_pyramid) * wheel_momenta;
 ylabel('Wheel Momenta (Nms)');
 xlabel('Time (s)');
 legend('h_1', 'h_2', 'h_3', 'location', 'best');
@@ -76,7 +71,12 @@ ylabel('Quaternion Errors');
 xlabel('Time (s)');
 legend('q_1', 'q_2', 'q_3', 'q_4', 'location', 'best');
 
+%% Plot Wheel Momenta Distributions
 
+W_pyramid = (1 / sqrt(2)) * [1, -1, 0, 0; 1, 1, 1, 1; 0, 0, 1, -1];
+W_NASA = [1, 0, 0, 1 / sqrt(3); 0, 1, 0, 1 / sqrt(3); 0, 0, 1, 1 / sqrt(3)];
+
+H_wW_pyramid = pinv(W_pyramid) * wheel_momenta;
 H_wW_NASA = pinv(W_NASA) * wheel_momenta;
 
 % Pyramid Wheel Momenta
