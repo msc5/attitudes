@@ -18,12 +18,20 @@ def cross(v: tt.Vector3) -> tt.Matrix:
     return cross
 
 
-def batch(v: torch.Tensor, shape: Union[torch.Size, list[int]] = []) -> torch.Tensor:
-    if shape == [] or shape == torch.Size([]):
+def batch(v: torch.Tensor, batch: Union[torch.Size, list[int]] = []) -> torch.Tensor:
+    """ 
+    Inputs:
+        v: [ *size ]
+    Outputs:
+        v: [ *batch, *size ]
+    """
+    if batch == [] or batch == torch.Size([]):
         return v
-    v = v[[None] * len(shape)]
-    v = v.repeat(*shape, *([1] * len(v.shape)))
-    return v
+    else:
+        size = len(v.shape)
+        v = v[[None] * len(batch)]
+        v = v.repeat(*batch, *([1] * size))
+        return v
 
 
 if __name__ == "__main__":
