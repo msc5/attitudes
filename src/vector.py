@@ -1,3 +1,4 @@
+from typing import Union
 import torch
 
 from .cli import console
@@ -17,12 +18,12 @@ def cross(v: tt.Vector3) -> tt.Matrix:
     return cross
 
 
-def eye(*shape: int) -> tt.Matrix:
-    breakpoint()
-    eye = torch.eye(shape[-1])
-    eye = eye[[None] * (len(shape) - 1)]
-    eye = eye.repeat(*shape[:-1], 1, 1)
-    return eye
+def batch(v: torch.Tensor, shape: Union[torch.Size, list[int]] = []) -> torch.Tensor:
+    if shape == [] or shape == torch.Size([]):
+        return v
+    v = v[[None] * len(shape)]
+    v = v.repeat(*shape, *([1] * len(v.shape)))
+    return v
 
 
 if __name__ == "__main__":

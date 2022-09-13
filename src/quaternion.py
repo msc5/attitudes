@@ -19,10 +19,11 @@ def from_theta(e: tt.Vector3, theta: tt.Float) -> tt.Quaternion:
 
 def psi(q: tt.Quaternion) -> tt.Matrix:
     breakpoint()
+    batch = q.shape[:-1]
     qv = q[..., 0:3]
     q4 = q[..., 3]
     qcross = V.cross(qv)
-    a = q4 * V.eye(qcross.shape) - qcross
+    a = q4 * V.batch(torch.eye(3), batch) - qcross
     b = - qv.transpose(-1, -2)
     return np.concatenate((a, b), axis=0)
 
