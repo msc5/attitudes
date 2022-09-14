@@ -1,21 +1,12 @@
-from typing import Union
 import torch
 
 from . import types as tt
 from . import vector as V
 
 
-def tensorize(f: Union[float, tt.Float]) -> tt.Float:
-    if not isinstance(f, torch.Tensor):
-        return torch.tensor([f])
-    else:
-        return f
-
-
 def from_theta(e: tt.Vector3, theta: tt.Float) -> tt.Quaternion:
-    batch = e.shape[:-1]
-    v = e * (theta / 2).sin()
-    s = V.batch((theta / 2).cos(), batch)
+    v = e * (theta[..., None] / 2).sin()
+    s = (theta[..., None] / 2).cos()
     return torch.cat([v, s], dim=-1)
 
 
@@ -55,9 +46,9 @@ if __name__ == "__main__":
 
     from .cli import console
 
-    v = torch.rand(2, 3)
+    v = torch.rand(5, 3)
+    theta = torch.rand(5)
 
-    theta = tensorize(torch.pi / 2)
     rot = from_theta(v, theta)
     console.log('Quaternion')
     console.log(rot, rot.shape)

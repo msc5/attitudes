@@ -1,46 +1,40 @@
-
-import numpy as np
+import torch
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d as _
 
-from quaternion import quaternion as q
+from . import quaternion as Q
+from . import vector as V
+
 
 if __name__ == "__main__":
 
-    from rich import print
-
-    c = 100
-    a = 20
-    b = 10
+    c = 100     # Speed of major-axis rotation
+    a = 20      # Minor-axis radius
+    b = 20      # Major-axis radius
     plot_range = [c + a, -(c + a)]
 
     n = 10000
 
     n_halos = 20
-    t = np.linspace(0, 2 * np.pi, n)
-    s = np.linspace(0, 2 * np.pi, n) * n_halos
+    t = torch.linspace(0, 2 * torch.pi, n)
+    s = torch.linspace(0, 2 * torch.pi, n) * n_halos
 
-    # print(t.shape, s.shape)
+    zero = torch.zeros(n)
+    one = torch.ones(n)
 
-    h = c * np.array([np.cos(t), np.sin(t), np.zeros(n)])
-    p = np.array([a * np.cos(s), np.zeros(n), b * np.sin(s)])
-    q_IH = q.from_theta(np.array([0, 0, 1]), np.pi / 2 - t)
-    A_IH = np.array([
-        [np.sin(t), np.cos(t), np.zeros(n)],
-        [-np.cos(t), np.sin(t), np.zeros(n)],
-        [np.zeros(n), np.zeros(n), np.ones(n)]
-    ])
+    h = c * torch.stack([t.cos(), t.sin(), zero], dim=-1)
+    p = torch.stack([a * s.cos(), zero, b * s.sin()], dim=-1)
 
-    print(h.shape, p.shape, (h + p).shape)
-    print(q_IH.shape)
+    e = V.batch(torch.tensor([0, 0, 1]), [n])
+    q_IH = Q.from_theta(e, (torch.pi / 2) - t)
 
-    r = np.zeros((3, n))
-    for i in range(n):
-        r[:, i] = h[:, i] + A_IH[:, :, i] @ p[:, i]
-        # r[:, i] = h[:, i] + q.A(q_IH[:, i]) @ p[:, i]
+    r = h + (Q.A(q_IH) @ p[..., None]).squeeze()
 
     fig = plt.figure(figsize=(10, 10))
     ax = plt.axes(projection='3d')
-    ax.plot3D(*r)
+
+    r = r.numpy()
+    ax.plot3D(r[:, 0], r[:, 1], r[:, 2])
     ax.set_xlim3d(plot_range)
     ax.set_ylim3d(plot_range)
     ax.set_zlim3d(plot_range)

@@ -20,6 +20,7 @@ def cross(v: tt.Vector3) -> tt.Matrix:
 
 def batch(v: torch.Tensor, batch: Union[torch.Size, list[int]] = []) -> torch.Tensor:
     """ 
+    Repeats v with the batch size provided.
     Inputs:
         v: [ *size ]
     Outputs:
