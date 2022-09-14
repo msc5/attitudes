@@ -8,12 +8,11 @@ from . import vector as V
 
 if __name__ == "__main__":
 
+    n = 10000   # Number of points to sample
     c = 100     # Speed of major-axis rotation
     a = 20      # Minor-axis radius
     b = 20      # Major-axis radius
     plot_range = [c + a, -(c + a)]
-
-    n = 10000
 
     n_halos = 20
     t = torch.linspace(0, 2 * torch.pi, n)
@@ -33,8 +32,8 @@ if __name__ == "__main__":
     fig = plt.figure(figsize=(10, 10))
     ax = plt.axes(projection='3d')
 
-    r = r.numpy()
-    ax.plot3D(r[:, 0], r[:, 1], r[:, 2])
+    x, y, z = r.permute(1, 0).numpy()
+    ax.plot3D(x, y, z)
     ax.set_xlim3d(plot_range)
     ax.set_ylim3d(plot_range)
     ax.set_zlim3d(plot_range)
