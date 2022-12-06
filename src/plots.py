@@ -61,7 +61,7 @@ def tracers(zis: torch.Tensor, rotation: torch.Tensor, l: Union[float, torch.Ten
         tracer: [ batch, 3, 4, t_n ]
     """
     props = torch.tensor([[1, 0, 0], [0, 1, 0]], device=zis.device).permute(1, 0)
-    props = l * torch.cat([props, -props], dim=-1)
+    props = 5 * l * torch.cat([props, -props], dim=-1)
     tracer = zis[..., None] + rotation @ props[None]
     tracer = tracer.permute(2, 1, 0)
     return tracer

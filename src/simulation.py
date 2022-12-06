@@ -29,6 +29,7 @@ if __name__ == "__main__":
     m = 0.5
     g = 9.81
     l = 0.25
+    # l = 5.0
 
     # k = 3e-6
     # b = 1e-7
@@ -41,8 +42,11 @@ if __name__ == "__main__":
     # Initial states
     # eta = torch.zeros(batch, 3, 1, device=device)
     # eta_dot = torch.zeros(batch, 3, 1, device=device)
-    eta = torch.normal(0, 0.1, size=(batch, 3, 1), device=device)
-    eta_dot = torch.normal(0, 0.1, size=(batch, 3, 1), device=device)
+
+    # eta = torch.normal(0, 0.1, size=(batch, 3, 1), device=device)
+    eta = torch.normal(0, 0.8, size=(batch, 3, 1), device=device)
+    eta_dot = torch.normal(0, 2, size=(batch, 3, 1), device=device)
+    # eta_dot = torch.normal(0, 5, size=(batch, 3, 1), device=device)
 
     zi = torch.zeros(batch, 3, 1, device=device)
     zi_dot = torch.zeros(batch, 3, 1, device=device)
@@ -52,7 +56,7 @@ if __name__ == "__main__":
 
     I = torch.eye(3, device=device)[None].repeat(batch, 1, 1)
 
-    t_0, t_f, t_n = 0, 10.0, 5000
+    t_0, t_f, t_n = 0, 8.0, 5000
     T = torch.linspace(t_0, t_f, t_n, device=device)
     dt = (t_f - t_0) / t_n
 
@@ -81,7 +85,7 @@ if __name__ == "__main__":
         R = R_matrix(eta)
 
         # Controller
-        if i > (0):
+        if i > (0) or True:
             u = - (kd * eta_dot + kp * eta + ki * eta_int)
             j = J @ u
             j1, j2, j3 = j[:, 0], j[:, 1], j[:, 2]
@@ -93,9 +97,12 @@ if __name__ == "__main__":
             f = (T / (4 * k)) + torch.stack([f1, f2, f3, f4], dim=1)
             # f = f + torch.normal(0, 0.1, size=(batch, 4, 1), device=device)
         else:
-            # f = torch.ones(batch, 4, 1, device=device) * ((m * g + 1) / 4)
             f = torch.ones(batch, 4, 1, device=device) * ((m * g + 1) / 4)
-            f[..., 2:, 0] = f[..., 2:, 0] + 1
+
+            # f = torch.zeros(batch, 4, 1, device=device)
+            # f[..., 2:, 0] = f[..., 2:, 0] + 10
+
+            # f = torch.normal(0, 50, size=(batch, 4, 1), device=device)
 
         F = torch.zeros(batch, 3, 1, device=device)
         F[:, -1, :] = f.sum(1)
