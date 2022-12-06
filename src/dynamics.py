@@ -1,8 +1,5 @@
 from typing import Union, cast
 import torch
-import matplotlib.pyplot as plt
-
-from rich.progress import track
 
 
 def W_matrix(eta: torch.Tensor):
@@ -37,7 +34,7 @@ def R_matrix(eta: torch.Tensor):
     return torch.stack([a, b, c]).permute(2, 0, 1)
 
 
-def tau_matrix(f: torch.Tensor, M: torch.Tensor, l: Union[float, torch.Tensor]):
+def tau_matrix(f: torch.Tensor, l: Union[float, torch.Tensor], k: Union[float, torch.Tensor], b: Union[float, torch.Tensor]):
     """
     Inputs:
         f:   [ batch, 4, 1 ]
@@ -46,10 +43,10 @@ def tau_matrix(f: torch.Tensor, M: torch.Tensor, l: Union[float, torch.Tensor]):
     Outputs:
         tau: [ batch, 3, 1 ]
     """
-    f1, f2, f3, f4 = f.squeeze(-1).permute(1, 0)
-    return torch.stack([(f3 - f1) / l,
-                        (f2 - f4) / l,
-                        M.squeeze(-1).sum(1)]).permute(1, 0)[..., None]
+    f1, f2, f3, f4 = (f**2).squeeze(-1).permute(1, 0)
+    return torch.stack([(f3 - f1) * k * l,
+                        (f2 - f4) * k * l,
+                        (f1 - f2 + f3 - f4) * b]).permute(1, 0)[..., None]
 
 
 def C_matrix(eta: torch.Tensor, eta_dot: torch.Tensor, I: torch.Tensor):
@@ -86,95 +83,3 @@ def C_matrix(eta: torch.Tensor, eta_dot: torch.Tensor, I: torch.Tensor):
     b = torch.stack([c21, c22, c23])
     c = torch.stack([c31, c32, c33])
     return torch.stack([a, b, c]).permute(2, 0, 1)
-
-
-if __name__ == "__main__":
-
-    batch = 1
-
-    m = 5.0
-    g = 9.81
-    l = 2.0
-
-    eta = torch.zeros(batch, 3, 1)
-    eta_dot = torch.zeros(batch, 3, 1)
-    zi = torch.zeros(batch, 3, 1)
-    zi_dot = torch.zeros(batch, 3, 1)
-
-    I = torch.eye(3)[None].repeat(batch, 1, 1)
-
-    t_0, t_f, t_n = 0, 10, 1000
-    T = torch.linspace(t_0, t_f, t_n)
-    dt = (t_f - t_0) / t_n
-
-    etas = torch.zeros(t_n, *eta.shape)
-    zis = torch.zeros(t_n, *zi.shape)
-    Rs = torch.zeros(t_n, batch, 3, 3)
-
-    for i, t in track(enumerate(T), total=t_n):
-
-        W = W_matrix(eta)
-        J = W.transpose(1, 2) @ I @ W
-        R = R_matrix(eta)
-
-        f = torch.rand(batch, 4, 1) * 10
-        F = torch.zeros(batch, 3, 1)
-        F[:, -1, :] = f.sum(1)
-
-        M = torch.zeros(batch, 4, 1)
-        # M = torch.rand(batch, 4, 1) * 1e-2
-
-        eta_dd = J.inverse() @ (tau_matrix(f, M, l) - C_matrix(eta, eta_dot, I) @ eta_dot)
-        zi_dd = (1 / m) * (R @ F - m * g * torch.tensor([0, 0, 1]).view(1, 3, 1))
-
-        eta_dot += dt * eta_dd
-        zi_dot += dt * zi_dd
-
-        eta += dt * eta_dot
-        zi += dt * zi_dot
-
-        etas[i] = eta
-        zis[i] = zi
-
-        Rs[i] = R
-
-    fig = plt.figure(figsize=(16, 10))
-    (ax_etas, ax_zis) = fig.subplots(nrows=1, ncols=2)
-    ax_etas.plot(etas.squeeze())
-    ax_etas.grid()
-    ax_zis.plot(zis.squeeze())
-    ax_zis.grid()
-    plt.show()
-
-    def axes(ax: plt.Axes, origin: torch.Tensor, basis: torch.Tensor):
-        ax.scatter(*origin, color='orange')
-        origin = origin[:, None].expand(3, 3)
-        axes = torch.stack([origin, origin + (basis * 25)], dim=-1).permute(1, 0, 2)
-        ax.plot(*axes[0], color='blue')
-        ax.plot(*axes[1], color='green')
-        ax.plot(*axes[2], color='red')
-
-    fig = plt.figure(figsize=(10, 10))
-    ax = cast(plt.Axes, fig.add_subplot(projection='3d'))
-    ax.invert_yaxis()
-
-    zis = zis.permute(1, 2, 0, 3).squeeze(-1)
-    etas = etas.permute(1, 2, 0, 3).squeeze(-1)
-
-    # for zi, eta in zip(zis, etas):
-    for b in range(batch):
-
-        # Plot trajectory curve
-        x, y, z = zis[b]
-        ax.plot(x, y, z)
-
-        for i in range(0, t_n, 200):
-            rotation = Rs[i, b].transpose(0, 1).squeeze(0)
-            origin = zis[b, :, i]
-            axes(ax, origin, rotation)
-
-    ax.scatter(*zis[:, :, 0].permute(1, 0), color='green')
-    ax.scatter(*zis[:, :, -1].permute(1, 0), color='red')
-    ax.set_aspect('equal')
-
-    plt.show()
