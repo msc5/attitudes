@@ -1,6 +1,6 @@
 # ASPA Attitude Dynamics and Control System
 
-
+![Project Section](CDR.pdf)
 
 <!-- ## Disturbance Torques -->
 <!-- ![Errors](figures/Disturbance_Errors.png) -->
